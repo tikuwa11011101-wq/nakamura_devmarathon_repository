@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顧客詳細</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">顧客詳細</h2>
+	  <table class="table">
+    	  <tr><th>顧客ID</th><td id="customer_id"></td></tr>
+    	  <tr><th>会社名</th><td><span id="company_name"></span><input type="text" id="company_name-input" class="form-control d-none"></td></tr>
+   	  <tr><th>業種</th><td><span id="industry"></span><input type="text" id="industry-input" class="form-control d-none"></td></tr>
+    	  <tr><th>連絡先</th><td><span id="contact"></span><input type="text" id="contact-input" class="form-control d-none"></td></tr>
+    	  <tr><th>所在地</th><td><span id="location"></span><input type="text" id="location-input" class="form-control d-none"></td></tr>
+     	  <tr><th>作成日時</th><td id="created_date"></td></tr>
+   	  <tr><th>更新日時</th><td id="updated_date"></td></tr>
+</table>
+<a href="list.html" class="btn btn-secondary">一覧に戻る</a>
+<button id="delete-btn" class="btn btn-danger">削除</button>
+<button id="edit-btn" class="btn btn-warning">編集</button>
+<button id="save-btn" class="btn btn-success d-none">更新する</button>
+    </div>
+
+    <script type="module">
+        import config from '../config.js';
+
+        const params = new URLSearchParams(window.location.search);
+        const customerId = params.get('id');
+
+        fetch(`${config.apiUrl}/customer/${customerId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('customer_id').textContent = data.customer_id;
+                document.getElementById('company_name').textContent = data.company_name;
+                document.getElementById('industry').textContent = data.industry;
+                document.getElementById('contact').textContent = data.contact;
+                document.getElementById('location').textContent = data.location;
+                document.getElementById('created_date').textContent = data.created_date;
+                document.getElementById('updated_date').textContent = data.updated_date;
+           })
+            .catch(error => console.error('Error:', error));
+		document.getElementById('delete-btn').addEventListener('click', function() {
+            const confirmed = confirm('削除していいですか?');
+            if (confirmed) {
+                fetch(`${config.apiUrl}/customer/${customerId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('削除しました。');
+                        window.location.href = 'list.html';
+                    } else {
+                        alert('削除に失敗しました。');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+
+const editableFields = ['company_name', 'industry', 'contact', 'location'];
+
+document.getElementById('edit-btn').addEventListener('click', function() {
+    editableFields.forEach(field => {
+        const span = document.getElementById(field);
+        const input = document.getElementById(`${field}-input`);
+        input.value = span.textContent;
+        span.classList.add('d-none');
+        input.classList.remove('d-none');
+    });
+    document.getElementById('edit-btn').classList.add('d-none');
+    document.getElementById('save-btn').classList.remove('d-none');
+});
+
+document.getElementById('save-btn').addEventListener('click', function() {
+    const updatedData = {
+        companyName: document.getElementById('company_name-input').value,
+        industry: document.getElementById('industry-input').value,
+        contact: document.getElementById('contact-input').value,
+        location: document.getElementById('location-input').value
+    };
+
+    fetch(`${config.apiUrl}/customer/${customerId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams(updatedData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('更新しました。');
+            location.reload();
+        } else {
+            alert('更新に失敗しました。');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+
+    </script>
+</body>
+</html>
