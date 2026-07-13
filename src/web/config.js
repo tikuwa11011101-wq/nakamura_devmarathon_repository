@@ -1,5 +1,5 @@
 const config = {
-  apiUrl: 'http://localhost:5914'
+  apiUrl: '/api_ri_nakamura'
 };
 
 export default config;
